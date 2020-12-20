@@ -1,0 +1,32 @@
+title 0.4: new note
+
+actor User
+User->Browser: The user visits /notes via the link in app root page
+Browser->Server: HTTP GET /notes
+Server->Browser: HTML Code content-type: text/html;
+Browser->Server: HTTP GET /main.css
+Server->Browser: main.css content-type: text/css;
+Browser->Server: HTTP GET /main.js
+Server->Browser: main.js content-type: application/javascript;
+
+note over Browser:
+The browser starts executing js code which requests JSON data from the server
+end note
+Browser->Server: HTTP GET /data.json
+Server->Browser: data.json content-type: application/json; [{"content":"Hello World!","date":"2020-12-20T13:32:19.912Z"}, ...]
+note over Browser:
+The browser executes an event handler that manipulates DOM using response body on the screen
+end note
+User->Browser: The user types the new note text and submits the form
+
+Browser->Server: HTTP Post /new_note
+note over Server:
+The server code that handles the POST request creates an object
+corresponding to the new note request body and pushes it to an array containing all notes
+end note
+
+Server->Browser: Status Code: 302; redirect to /notes
+note over Browser:
+The browser reloads the notes page. The page load also triggers three other HTTP requests:
+the style file ( main.css), the JavaScript code ( main.js), and the raw data for the notes ( data.json).
+end note
