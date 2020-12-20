@@ -1,0 +1,35 @@
+title 0.6: New note
+
+actor User
+User->Browser: The user visits /spa
+Browser->Server: HTTP GET /spa
+Server->Browser: HTML Code content-type: text/html;
+Browser->Server: HTTP GET /main.css
+Server->Browser: main.css content-type: text/css;
+Browser->Server: HTTP GET /main.js
+Server->Browser: spa.js content-type: application/javascript;
+
+note over Browser:
+The browser starts executing js code which requests JSON data from the server
+end note
+Browser->Server: HTTP GET /data.json
+Server->Browser: data.json content-type: application/json; [{"content":"Hello World!","date":"2020-12-20T13:32:19.912Z"}, ...]
+note over Browser:
+The browser executes an event handler that manipulates DOM using response body on the screen
+end note
+
+User->Browser: The user types the new note text and submits the form
+
+note over Browser:
+The onsubmit event handler prevents the default handling of form submission.
+Then the event handler creates a new note, adds it to the notes list,
+rerenders the note list on the page and sends a stringified json of the new note to the server
+with xhr requst and headers set to 'Content-type', 'application/json'
+end note
+
+Browser->Server: HTTP Post /new_note_spa
+note over Server:
+The server code that handles the POST request creates an object
+corresponding to the new note request body and sends success message
+end note
+Server->Browser: Status Code: 201 {"message":"note created"}

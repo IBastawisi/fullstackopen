@@ -1,0 +1,19 @@
+title 0.5: Single Page App
+
+actor User
+User->Browser: The user visits /spa
+Browser->Server: HTTP GET /spa
+Server->Browser: HTML Code content-type: text/html;
+Browser->Server: HTTP GET /main.css
+Server->Browser: main.css content-type: text/css;
+Browser->Server: HTTP GET /main.js
+Server->Browser: spa.js content-type: application/javascript;
+
+note over Browser:
+The browser starts executing js code which requests JSON data from the server
+end note
+Browser->Server: HTTP GET /data.json
+Server->Browser: data.json content-type: application/json; [{"content":"Hello World!","date":"2020-12-20T13:32:19.912Z"}, ...]
+note over Browser:
+The browser executes an event handler that manipulates DOM using response body on the screen
+end note
