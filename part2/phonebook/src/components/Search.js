@@ -1,0 +1,2 @@
+import React from 'react'
+export const Search = ({searchQuery, setSearchQuery}) => <div><span>Search Contacts</span><input type="search" value={searchQuery} onInput={e => setSearchQuery(e.target.value)} /></div>
