@@ -1,2 +1,10 @@
 import React from 'react'
-export const Contacts = ({contacts}) => <div>{contacts.map(c => <p key={c.id}>{c.name}: {c.number}</p>)}</div>
+export const Contacts = ({ contacts, handleDelete }) =>
+    <div>
+        {contacts.map(c =>
+            <div key={c.id}>
+                <span>{c.name}: {c.number}</span>
+                <button onClick={() => handleDelete(c)}>DELETE</button>
+            </div>
+        )}
+    </div>

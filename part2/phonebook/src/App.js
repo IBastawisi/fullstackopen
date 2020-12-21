@@ -3,6 +3,7 @@ import axios from 'axios'
 import { Contacts } from './components/Contacts'
 import { ContactForm } from './components/ContactForm'
 import { Search } from './components/Search'
+import contactService from './services/contacts'
 
 const App = () => {
   const [contacts, setContacts] = useState([])
@@ -11,10 +12,8 @@ const App = () => {
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
-    axios.get('http://localhost:3001/contacts')
-      .then(response => {
-        setContacts(response.data)
-      })
+    contactService.getAll()
+      .then(contacts => setContacts(contacts))
   }, [])
 
   const handleNameInput = (event) => {
@@ -27,18 +26,40 @@ const App = () => {
 
   const addContact = (event) => {
     event.preventDefault()
-    if (contacts.find(c => c.name === newName)) {
-      return alert(`${newName} is already added to phonebook`)
-    }
+    const dublicate = contacts.find(c => c.name === newName)
 
     const contact = {
-      id: contacts.length + 1,
       name: newName,
       number: newNumber,
     }
-    setContacts(contacts.concat(contact))
-    setNewName('')
-    setNewNumber('')
+
+    if (dublicate && window.confirm(`${contact.name} is already in the phonebook, update his number?`)) {
+      contactService.update(dublicate.id, contact).then(returnedContact => {
+        setContacts(contacts.map(c => c.id === returnedContact.id ? returnedContact : c))
+        setNewName('')
+        setNewNumber('')
+      })
+      return
+    }
+
+    contactService.create(contact).then(returnedContact => {
+      setContacts(contacts.concat(returnedContact))
+      setNewName('')
+      setNewNumber('')
+    })
+  }
+
+  const deleteContact = (contact) => {
+    if (window.confirm(`Delete ${contact.name}?`)) {
+      contactService.remove(contact.id)
+        .then(() => {
+          setContacts(contacts.filter(c => c.id != contact.id))
+        })
+        .catch(() => {
+          alert(`${contact.name} was already deleted from server`)
+        })
+    }
+
   }
 
   const filteredContacts = searchQuery.trim().length > 0
@@ -52,7 +73,7 @@ const App = () => {
       <h3>Add New</h3>
       <ContactForm {...{ addContact, newName, handleNameInput, newNumber, handleNumberInput }} />
       <h3>Numbers</h3>
-      <Contacts contacts={filteredContacts} />
+      <Contacts contacts={filteredContacts} handleDelete={deleteContact} />
     </div>
   )
 }
