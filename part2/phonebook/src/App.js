@@ -36,7 +36,7 @@ const App = () => {
     }
 
     if (dublicate) {
-      const confirmed =  window.confirm(`${contact.name} is already in the phonebook, update his number?`)
+      const confirmed = window.confirm(`${contact.name} is already in the phonebook, update his number?`)
       confirmed && contactService.update(dublicate.id, contact).then(returnedContact => {
         setAnnouncement({
           message: `${contact.name} was successfully updated`,
@@ -48,6 +48,14 @@ const App = () => {
         setContacts(contacts.map(c => c.id === returnedContact.id ? returnedContact : c))
         setNewName('')
         setNewNumber('')
+      }).catch(e => {
+        setAnnouncement({
+          message: e.response.data.error,
+          style: 'error'
+        })
+        setTimeout(() => {
+          setAnnouncement(null)
+        }, 3000)
       })
       return
     }
@@ -64,6 +72,14 @@ const App = () => {
       setContacts(contacts.concat(returnedContact))
       setNewName('')
       setNewNumber('')
+    }).catch(e => {
+      setAnnouncement({
+        message: e.response.data.error,
+        style: 'error'
+      })
+      setTimeout(() => {
+        setAnnouncement(null)
+      }, 3000)
     })
   }
 
@@ -78,7 +94,7 @@ const App = () => {
           setTimeout(() => {
             setAnnouncement(null)
           }, 3000)
-  
+
           setContacts(contacts.filter(c => c.id != contact.id))
         })
         .catch(() => {
@@ -102,7 +118,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <Announcer {...{announcement}} />
+      <Announcer {...{ announcement }} />
       <Search {...{ searchQuery, setSearchQuery }} />
       <h3>Add New</h3>
       <ContactForm {...{ addContact, newName, handleNameInput, newNumber, handleNumberInput }} />
