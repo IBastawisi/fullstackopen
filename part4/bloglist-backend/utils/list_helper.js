@@ -27,9 +27,12 @@ const mostBlogs = blogs => {
   function countBlogsByAuthor(objectArray) {
     return objectArray.reduce(function (acc, obj) {
       let key = obj.author
-      let ob = acc.find(ob => ob.author === key) || { author:key, blogs: 0 }
+      let ob = acc.find(ob => ob.author === key)
+      if (!ob) {
+        ob = { author: key, blogs: 0 }
+        acc.push(ob)
+      }
       ob.blogs += 1
-      acc.push(ob)
       return acc
     }, [])
   }
@@ -41,9 +44,12 @@ const mostLikes = blogs => {
   function countlikesByAuthor(objectArray) {
     return objectArray.reduce(function (acc, obj) {
       let key = obj.author
-      let ob = acc.find(ob => ob.author === key) || { author:key, likes: 0 }
+      let ob = acc.find(ob => ob.author === key)
+      if (!ob) {
+        ob = { author: key, likes: 0 }
+        acc.push(ob)
+      }
       ob.likes += obj.likes
-      acc.push(ob)
       return acc
     }, [])
   }
