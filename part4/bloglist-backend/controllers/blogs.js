@@ -15,7 +15,7 @@ blogsRouter.post('/', async (request, response) => {
   if (!request.token || !decodedToken.id) {
     return response.status(401).json({ error: 'token missing or invalid' })
   }
-  const user = await User.findById(decodedToken.id)
+  const user = await (await User.findById(decodedToken.id))
 
   const blog = new Blog({ ...body, user: user._id })
   const savedBlog = await blog.save()
@@ -23,7 +23,7 @@ blogsRouter.post('/', async (request, response) => {
   user.blogs = user.blogs.concat(savedBlog._id)
   await user.save()
 
-  response.json(savedBlog)
+  response.json({ ...savedBlog.toJSON(), ...user.toJSON() })
 })
 
 blogsRouter.put('/:id', async (request, response) => {
@@ -31,7 +31,7 @@ blogsRouter.put('/:id', async (request, response) => {
   const id = request.params.id
   const blog = { ...body }
 
-  const updated = await Blog.findByIdAndUpdate(id, blog, { new: true, runValidators: true, context: 'query' })
+  const updated = await Blog.findByIdAndUpdate(id, blog, { new: true, runValidators: true, context: 'query' }).populate('user', { username: 1, name: 1 })
   response.json(updated)
 })
 

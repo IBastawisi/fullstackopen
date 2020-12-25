@@ -1,23 +1,18 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import loginService from './services/login'
 import blogService from './services/blogs'
 import { Announcer } from './components/Announcer'
 import './App.css'
+import LoginForm from './components/LoginForm'
 import { BlogForm } from './components/BlogForm'
+import Collapsible from './components/Collapsible'
 
 const App = () => {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
   const [announcement, setAnnouncement] = useState(null)
   const [blogs, setBlogs] = useState([])
-  const [newBlog, setNewBlog] = useState({
-    title: '',
-    author: '',
-    url: ''
-  })
-
+  const blogFormRef = useRef()
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -34,20 +29,14 @@ const App = () => {
     }
   }, [])
 
-  const handleLogin = async (event) => {
-    event.preventDefault()
-
+  const handleLogin = async loginForm => {
     try {
-      const user = await loginService.login({
-        username, password,
-      })
+      const user = await loginService.login(loginForm)
       window.localStorage.setItem(
         'loggedinUser', JSON.stringify(user)
       )
       blogService.setToken(user.token)
       setUser(user)
-      setUsername('')
-      setPassword('')
     } catch (exception) {
       setAnnouncement({
         message: 'wrong credentials',
@@ -59,15 +48,10 @@ const App = () => {
     }
   }
 
-  const handleNewBlogInput = event => {
-    const { name, value } = event.target
-    setNewBlog({ ...newBlog, [name]: value })
-  }
-
-  const addNewBlog = async (event) => {
-    event.preventDefault()
+  const addBlog = async (newBlog) => {
     try {
       const blog = await blogService.create(newBlog)
+      blogFormRef.current.toggleVisibility()
       setAnnouncement({
         message: `Blog ${blog.title} has been added`,
         style: 'success'
@@ -76,12 +60,37 @@ const App = () => {
         setAnnouncement(null)
       }, 3000)
 
-      setNewBlog({
-        title: '',
-        author: '',
-        url: ''
-      })
       setBlogs(blogs.concat(blog))
+    } catch (exception) {
+      setAnnouncement({
+        message: exception.response.data.error,
+        style: 'error'
+      })
+      setTimeout(() => {
+        setAnnouncement(null)
+      }, 5000)
+    }
+  }
+
+  const addLike = async (old) => {
+    try {
+      const blog = await blogService.update(old.id, { likes: old.likes + 1 })
+      setBlogs(blogs.map(b => b.id === old.id? blog: b))
+    } catch (exception) {
+      setAnnouncement({
+        message: exception.response.data.error,
+        style: 'error'
+      })
+      setTimeout(() => {
+        setAnnouncement(null)
+      }, 5000)
+    }
+  }
+
+  const deleteBlog = async id => {
+    try {
+      await blogService.remove(id)
+      setBlogs(blogs.filter(b => b.id !== id))
     } catch (exception) {
       setAnnouncement({
         message: exception.response.data.error,
@@ -108,50 +117,25 @@ const App = () => {
   }
 
 
-  if (user === null) {
-    return <div>
-      <h1>Login to app</h1>
-      <Announcer {...{ announcement }} />
-      <form onSubmit={handleLogin}>
-        <div>
-          username
-          <input
-            type="text"
-            value={username}
-            name="Username"
-            onChange={({ target }) => setUsername(target.value)}
-          />
-        </div>
-        <div>
-          password
-          <input
-            type="password"
-            value={password}
-            name="Password"
-            onChange={({ target }) => setPassword(target.value)}
-          />
-        </div>
-        <button type="submit">login</button>
-      </form>
-
+  return <div>
+    <Announcer {...{ announcement }} />
+    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <h2>Blogs</h2>
+      {!user &&
+        <Collapsible label="Login" onLabel='Cancel'>
+          <LoginForm login={handleLogin} />
+        </Collapsible>
+      }
+      {user && <div>
+        <span>{user.name} logged-in</span>
+        <button onClick={logout}>Logout</button>
+      </div>}
     </div>
-  }
-  return (
-    <div>
-      <Announcer {...{ announcement }} />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>blogs</h2>
-        <div>
-          <span>{user.name} logged-in</span>
-          <button onClick={logout}>Logout</button>
-        </div>
-      </div>
-      <BlogForm blog={newBlog} handleInput={handleNewBlogInput} addBlog={addNewBlog} />
-      {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
-      )}
-    </div>
-  )
+    {user && <Collapsible label="Add new Blog" onLabel='Cancel' ref={blogFormRef}>
+      <BlogForm addBlog={addBlog} />
+    </Collapsible>}
+    {blogs.map(blog => <Blog key={blog.id} blog={blog} addLike={addLike} deleteBlog={user?.username === blog.user.username && deleteBlog }/>)}
+  </div>
 }
 
 export default App
