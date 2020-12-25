@@ -9,7 +9,7 @@ const Blog = ({ blog, addLike, deleteBlog }) => {
     marginBottom: 5
   }
 
-  const handleDelete = async (event) => {
+  const handleDelete = async () => {
     const res = window.confirm(`Are you sure to permenantly remove ${blog.title}?`)
     if (res) {
       deleteBlog(blog.id)
@@ -26,11 +26,12 @@ const Blog = ({ blog, addLike, deleteBlog }) => {
           <p>Title: {blog.title}</p>
           <p>Author: {blog.author}</p>
           <p>Url: <a href={blog.url} target='_blanck'>{blog.url}</a></p>
-          <p>Likes: {blog.likes} <button onClick={()=>addLike(blog)}>Add like</button></p>
+          <p>Likes: {blog.likes} <button onClick={() => addLike(blog)}>Add like</button></p>
         </div>
       </Collapsible>
-      {deleteBlog && <button onClick={handleDelete}>DELETE Blog</button>}  
-  </div>
-)}
+      {deleteBlog && <button onClick={handleDelete}>DELETE Blog</button>}
+    </div>
+  )
+}
 
 export default Blog

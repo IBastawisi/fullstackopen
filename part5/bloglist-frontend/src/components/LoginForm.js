@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 const LoginForm = ({ login }) => {
-  const [user, setUser] = useState({username: '', password: ''})
+  const [user, setUser] = useState({ username: '', password: '' })
   const handleInput = event => {
     const { name, value } = event.target
     setUser({ ...user, [name]: value })
@@ -9,7 +9,7 @@ const LoginForm = ({ login }) => {
   const handleSubmit = async (event) => {
     event.preventDefault()
     login(user)
-    setUser({username: '', password: ''})
+    setUser({ username: '', password: '' })
   }
   return (
     <div>
@@ -18,7 +18,7 @@ const LoginForm = ({ login }) => {
         <div>
           username
           <input
-          name='username'
+            name='username'
             value={user.username}
             onChange={handleInput}
           />
@@ -31,7 +31,7 @@ const LoginForm = ({ login }) => {
             value={user.password}
             onChange={handleInput}
           />
-      </div>
+        </div>
         <button type="submit">login</button>
       </form>
     </div>

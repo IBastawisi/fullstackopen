@@ -75,7 +75,7 @@ const App = () => {
   const addLike = async (old) => {
     try {
       const blog = await blogService.update(old.id, { likes: old.likes + 1 })
-      setBlogs(blogs.map(b => b.id === old.id? blog: b))
+      setBlogs(blogs.map(b => b.id === old.id ? blog : b))
     } catch (exception) {
       setAnnouncement({
         message: exception.response.data.error,
@@ -134,7 +134,7 @@ const App = () => {
     {user && <Collapsible label="Add new Blog" onLabel='Cancel' ref={blogFormRef}>
       <BlogForm addBlog={addBlog} />
     </Collapsible>}
-    {blogs.map(blog => <Blog key={blog.id} blog={blog} addLike={addLike} deleteBlog={user?.username === blog.user.username && deleteBlog }/>)}
+    {blogs.map(blog => <Blog key={blog.id} blog={blog} addLike={addLike} deleteBlog={user && user.username === blog.user.username && deleteBlog} />)}
   </div>
 }
 
