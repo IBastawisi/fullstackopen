@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { vote, createAnecdote, announce, clearAnnouncement, filterChange } from './reducer'
+import { initApp, vote, createAnecdote, announce, clearAnnouncement, filterChange } from './reducer'
+import service from './service'
 import { Announcer } from './Announcer'
 import Filter from './Filter'
 import './App.css'
@@ -24,21 +25,21 @@ const AnecdoteList = () => {
       dispatch(clearAnnouncement())
     }, 3000)
   }
-
   return <>
     <Filter />
-    {anecdotes.sort((a, b) => b.votes - a.votes).map(a => <Anecdote key={a.id} anecdote={a} vote={() => addVote(a.id)} />)}
+    {anecdotes.map(a => <Anecdote key={a.id} anecdote={a} vote={() => addVote(a.id)} />)}
   </>
 }
 
 const AnecdoteForm = () => {
   const dispatch = useDispatch()
 
-  const add = (event) => {
+  const add = async (event) => {
     event.preventDefault()
     const text = event.target.text.value
     event.target.text.value = ''
-    dispatch(createAnecdote(text))
+    const newAnecdote = await service.createNew(text)
+    dispatch(createAnecdote(newAnecdote))
     dispatch(announce({
       message: 'Anecdote was added successfully',
       style: 'success'
@@ -63,6 +64,10 @@ const App = () => {
   const [selected, setSelected] = useState(Math.floor(Math.random() * anecdotes.length))
   const topVoted = anecdotes.find(a => a.votes === Math.max(...anecdotes.map(a => a.votes)))
 
+  useEffect(() => {
+    service.getAll().then(anecdotes => dispatch(initApp(anecdotes)))
+  }, [dispatch])
+
   const addVote = (id) => {
     dispatch(vote(id))
     dispatch(announce({
@@ -78,7 +83,7 @@ const App = () => {
     <div>
       <Announcer />
       <h1>Anecdote of the day</h1>
-      <Anecdote anecdote={anecdotes[selected]} vote={() => addVote(anecdotes[selected].id)} />
+      {anecdotes[selected] && <Anecdote anecdote={anecdotes[selected]} vote={() => addVote(anecdotes[selected].id)} />}
       <button onClick={() => setSelected(selected == anecdotes.length - 1 ? 0 : selected + 1)}>next</button>
 
       {topVoted && <>
