@@ -17,7 +17,7 @@ const Blog = ({ blog, addLike, deleteBlog }) => {
   }
 
   return (
-    <div style={blogStyle}>
+    <div style={blogStyle} className='blog'>
       <div>
         {blog.title} by {blog.author}
       </div>
@@ -26,7 +26,7 @@ const Blog = ({ blog, addLike, deleteBlog }) => {
           <p>Title: {blog.title}</p>
           <p>Author: {blog.author}</p>
           <p>Url: <a href={blog.url} target='_blanck'>{blog.url}</a></p>
-          <p>Likes: {blog.likes} <button onClick={() => addLike(blog)}>Add like</button></p>
+          <p>Likes: <span className='like-count'>{blog.likes}</span> <button onClick={() => addLike(blog)}>Add like</button></p>
         </div>
       </Collapsible>
       {deleteBlog && <button onClick={handleDelete}>DELETE Blog</button>}
