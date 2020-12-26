@@ -1,3 +1,5 @@
+import { combineReducers } from 'redux'
+
 const generateId = () =>
   Number((Math.random() * 1000000).toFixed(0))
 
@@ -19,6 +21,26 @@ export const vote = (id) => {
   }
 }
 
+export const announce = (announucement) => {
+  return {
+    type: 'ANNOUNCE',
+    data: announucement
+  }
+}
+
+export const clearAnnouncement = () => {
+  return {
+    type: 'CLEAR_ANNOUNCEMENT'
+  }
+}
+
+export const filterChange = filter => {
+  return {
+    type: 'SET_FILTER',
+    filter,
+  }
+}
+
 const initialState = [
   { id: generateId(), text: 'If it hurts, do it more often', votes: 2 },
   { id: generateId(), text: 'Adding manpower to a late software project makes it later!', votes: 5 },
@@ -28,7 +50,7 @@ const initialState = [
   { id: generateId(), text: 'Debugging is twice as hard as writing the code in the first place. Therefore, if you write the code as cleverly as possible, you are, by definition, not smart enough to debug it.', votes: 1 }
 ]
 
-const reducer = (state = initialState, action) => {
+const anecdoteReducer = (state = initialState, action) => {
   switch (action.type) {
     case 'NEW_ANECDOTE':
       return [...state, action.data]
@@ -46,5 +68,31 @@ const reducer = (state = initialState, action) => {
       return state
   }
 }
+
+const announcementReducer = (state = null, action) => {
+  switch (action.type) {
+    case 'ANNOUNCE':
+      return action.data
+    case 'CLEAR_ANNOUNCEMENT':
+      return null
+    default:
+      return state
+  }
+}
+
+const filterReducer = (state = '', action) => {
+  switch (action.type) {
+    case 'SET_FILTER':
+      return action.filter
+    default:
+      return state
+  }
+}
+
+const reducer = combineReducers({
+  anecdotes: anecdoteReducer,
+  announcement: announcementReducer,
+  filter: filterReducer
+})
 
 export default reducer

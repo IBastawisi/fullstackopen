@@ -1,6 +1,9 @@
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { vote, createAnecdote } from './reducer'
+import { vote, createAnecdote, announce, clearAnnouncement, filterChange } from './reducer'
+import { Announcer } from './Announcer'
+import Filter from './Filter'
+import './App.css'
 
 const Anecdote = ({ anecdote, vote }) => <>
   <p>{anecdote.text}</p>
@@ -9,9 +12,23 @@ const Anecdote = ({ anecdote, vote }) => <>
 </>
 
 const AnecdoteList = () => {
-  const anecdotes = useSelector(state => state)
+  const anecdotes = useSelector(state => state.anecdotes.filter(a => a.text.toLowerCase().includes(state.filter.toLowerCase())))
   const dispatch = useDispatch()
-  return anecdotes.sort((a, b) => b.votes - a.votes).map(a => <Anecdote key={a.id} anecdote={a} vote={() => dispatch(vote(a.id))} />)
+  const addVote = (id) => {
+    dispatch(vote(id))
+    dispatch(announce({
+      message: 'You voted successfully',
+      style: 'success'
+    }))
+    setTimeout(() => {
+      dispatch(clearAnnouncement())
+    }, 3000)
+  }
+
+  return <>
+    <Filter />
+    {anecdotes.sort((a, b) => b.votes - a.votes).map(a => <Anecdote key={a.id} anecdote={a} vote={() => addVote(a.id)} />)}
+  </>
 }
 
 const AnecdoteForm = () => {
@@ -22,6 +39,14 @@ const AnecdoteForm = () => {
     const text = event.target.text.value
     event.target.text.value = ''
     dispatch(createAnecdote(text))
+    dispatch(announce({
+      message: 'Anecdote was added successfully',
+      style: 'success'
+    }))
+    setTimeout(() => {
+      dispatch(clearAnnouncement())
+    }, 3000)
+
   }
 
   return (
@@ -33,20 +58,32 @@ const AnecdoteForm = () => {
 }
 
 const App = () => {
-  const anecdotes = useSelector(state => state)
+  const anecdotes = useSelector(state => state.anecdotes)
   const dispatch = useDispatch()
   const [selected, setSelected] = useState(Math.floor(Math.random() * anecdotes.length))
   const topVoted = anecdotes.find(a => a.votes === Math.max(...anecdotes.map(a => a.votes)))
 
+  const addVote = (id) => {
+    dispatch(vote(id))
+    dispatch(announce({
+      message: 'You voted successfully',
+      style: 'success'
+    }))
+    setTimeout(() => {
+      dispatch(clearAnnouncement())
+    }, 3000)
+  }
+
   return (
     <div>
+      <Announcer />
       <h1>Anecdote of the day</h1>
-      <Anecdote anecdote={anecdotes[selected]} vote={() => dispatch(vote(anecdotes[selected].id))} />
+      <Anecdote anecdote={anecdotes[selected]} vote={() => addVote(anecdotes[selected].id)} />
       <button onClick={() => setSelected(selected == anecdotes.length - 1 ? 0 : selected + 1)}>next</button>
 
       {topVoted && <>
         <h1>Anecdote with most votes</h1>
-        <Anecdote anecdote={topVoted} vote={() => dispatch(vote(topVoted.id))} />
+        <Anecdote anecdote={topVoted} vote={() => addVote(topVoted.id)} />
       </>}
 
       <h3>Add Anecdotes</h3>
