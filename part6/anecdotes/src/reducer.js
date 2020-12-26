@@ -32,14 +32,16 @@ export const vote = (object) => {
 }
 
 export const announce = (announucement, timeout = 3000) => {
-  return async dispatch => {
+  return async (dispatch, getState) => {
+    const prevAnnouncement = getState().announcement
+    if (prevAnnouncement) {
+      clearTimeout(prevAnnouncement.id)
+    }
+    const id = setTimeout(() => dispatch(clearAnnouncement(id)), timeout)
     dispatch({
       type: 'ANNOUNCE',
-      data: announucement
+      data: { id, ...announucement }
     })
-
-    await new Promise(resolve => setTimeout(resolve, timeout))
-    dispatch(clearAnnouncement())
   }
 }
 

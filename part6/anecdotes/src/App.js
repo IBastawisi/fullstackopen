@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import { initApp, vote, createAnecdote, announce} from './reducer'
+import { connect, useDispatch } from 'react-redux'
+import { initApp, vote, createAnecdote, announce } from './reducer'
 import { Announcer } from './Announcer'
 import Filter from './Filter'
 import './App.css'
@@ -11,35 +11,41 @@ const Anecdote = ({ anecdote, vote }) => <>
   <button onClick={vote}>vote</button>
 </>
 
-const AnecdoteList = () => {
-  const anecdotes = useSelector(state => state.anecdotes.filter(a => a.text.toLowerCase().includes(state.filter.toLowerCase())))
-  const dispatch = useDispatch()
-  const addVote = (object) => {
-    dispatch(vote(object))
-    dispatch(announce({
+const AnecdoteList = props => {
+  const addVote = object => {
+    props.vote(object)
+    props.announce({
       message: 'You voted successfully',
       style: 'success'
-    }))
+    })
   }
 
   return <>
     <Filter />
-    {anecdotes.map(a => <Anecdote key={a.id} anecdote={a} vote={() => addVote(a)} />)}
+    {props.anecdotes.map(a => <Anecdote key={a.id} anecdote={a} vote={() => addVote(a)} />)}
   </>
 }
 
-const AnecdoteForm = () => {
-  const dispatch = useDispatch()
+const mapStateToProps = state => {
+  return {
+    anecdotes: state.anecdotes.filter(a => a.text.toLowerCase().includes(state.filter.toLowerCase())),
+  }
+}
 
+const mapDispatchToProps = { vote, announce }
+
+const ConnectedAnecdoteList = connect(mapStateToProps, mapDispatchToProps)(AnecdoteList)
+
+const AnecdoteForm = props => {
   const add = event => {
     event.preventDefault()
     const text = event.target.text.value
     event.target.text.value = ''
-    dispatch(createAnecdote(text))
-    dispatch(announce({
+    props.createAnecdote(text)
+    props.announce({
       message: 'Anecdote was added successfully',
       style: 'success'
-    }))
+    })
   }
 
   return (
@@ -50,40 +56,67 @@ const AnecdoteForm = () => {
   )
 }
 
-const App = () => {
-  const anecdotes = useSelector(state => state.anecdotes)
-  const dispatch = useDispatch()
-  const [selected, setSelected] = useState(Math.floor(Math.random() * anecdotes.length))
-  const topVoted = anecdotes.find(a => a.votes === Math.max(...anecdotes.map(a => a.votes)))
+const ConnectedAnecdoteForm = connect(null, { createAnecdote, announce })(AnecdoteForm)
+
+const DailyAnecdote = props => {
+  const [selected, setSelected] = useState(null)
 
   useEffect(() => {
-    dispatch(initApp(anecdotes))
-  }, [dispatch])
+    if (props.anecdotes) {
+      !selected && setSelected(Math.floor(Math.random() * props.anecdotes.length))
+    }
+  }, [props.anecdotes])
 
-  const addVote = (object) => {
-    dispatch(vote(object))
-    dispatch(announce({
+  const addVote = object => {
+    props.vote(object)
+    props.announce({
       message: 'You voted successfully',
       style: 'success'
-    }))
+    })
   }
+
+
+  return selected ? <> <Anecdote anecdote={props.anecdotes[selected]} vote={() => addVote(props.anecdotes[selected])} />
+    <button onClick={() => setSelected(selected === props.anecdotes.length - 1 ? 0 : selected + 1)}>next</button></> : null
+}
+
+const ConnectedDailyAnecdote = connect(state => {
+  return { anecdotes: state.anecdotes }
+}, { vote, announce })(DailyAnecdote)
+
+const MostVotedAnecdote = props => {
+  const addVote = object => {
+    props.vote(object)
+    props.announce({
+      message: 'You voted successfully',
+      style: 'success'
+    })
+  }
+
+  return props.anecdote ? <Anecdote anecdote={props.anecdote} vote={() => addVote(props.anecdote)} /> : null
+}
+
+const ConnectedMostVotedAnecdote = connect(state => {
+  return { anecdote: state.anecdotes.find(a => a.votes === Math.max(...state.anecdotes.map(a => a.votes))) }
+}, { vote, announce })(MostVotedAnecdote)
+
+const App = () => {
+  const dispatch = useDispatch()
+  useEffect(() => {
+    dispatch(initApp())
+  }, [dispatch])
 
   return (
     <div>
       <Announcer />
       <h1>Anecdote of the day</h1>
-      {anecdotes[selected] && <Anecdote anecdote={anecdotes[selected]} vote={() => addVote(anecdotes[selected])} />}
-      <button onClick={() => setSelected(selected === anecdotes.length - 1 ? 0 : selected + 1)}>next</button>
-
-      {topVoted && <>
-        <h1>Anecdote with most votes</h1>
-        <Anecdote anecdote={topVoted} vote={() => addVote(topVoted)} />
-      </>}
-
+      <ConnectedDailyAnecdote />
+      <h1>Anecdote with most votes</h1>
+      <ConnectedMostVotedAnecdote />
       <h3>Add Anecdotes</h3>
-      <AnecdoteForm />
+      <ConnectedAnecdoteForm />
       <h1>All Anecdotes</h1>
-      <AnecdoteList />
+      <ConnectedAnecdoteList />
     </div>
   )
 }
