@@ -1,32 +1,48 @@
 import { combineReducers } from 'redux'
+import service from './service'
 
-export const initApp = (data) => {
-  return {
-    type: 'INIT',
-    data
+export const initApp = () => {
+  return async dispatch => {
+    const data = await service.getAll()
+    dispatch({
+      type: 'INIT',
+      data
+    })
   }
 }
 
-export const createAnecdote = (data) => {
-  return {
-    type: 'NEW_ANECDOTE',
-    data
+export const createAnecdote = (text) => {
+  return async dispatch => {
+    const data = await service.createNew(text)
+    dispatch({
+      type: 'NEW_ANECDOTE',
+      data
+    })
   }
 }
 
-export const vote = (id) => {
-  return {
-    type: 'VOTE',
-    data: { id }
+export const vote = (object) => {
+  return async dispatch => {
+    const data = await service.update({ ...object, votes: +object.votes + 1 })
+    dispatch({
+      type: 'VOTE',
+      data
+    })
   }
 }
 
-export const announce = (announucement) => {
-  return {
-    type: 'ANNOUNCE',
-    data: announucement
+export const announce = (announucement, timeout = 3000) => {
+  return async dispatch => {
+    dispatch({
+      type: 'ANNOUNCE',
+      data: announucement
+    })
+
+    await new Promise(resolve => setTimeout(resolve, timeout))
+    dispatch(clearAnnouncement())
   }
 }
+
 
 export const clearAnnouncement = () => {
   return {
@@ -49,13 +65,8 @@ const anecdoteReducer = (state = [], action) => {
       return [...state, action.data]
     case 'VOTE': {
       const id = action.data.id
-      const anecdoteToChange = state.find(n => n.id === id)
-      const changedAnecdote = {
-        ...anecdoteToChange,
-        votes: anecdoteToChange.votes + 1
-      }
       return state.map(anecdote =>
-        anecdote.id !== id ? anecdote : changedAnecdote
+        anecdote.id !== id ? anecdote : action.data
       )
     } default:
       return state
