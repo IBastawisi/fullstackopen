@@ -40,7 +40,7 @@ const Footer = () => (
 const Anecdote = ({ anecdote, vote }) => <>
   <h2>{anecdote.content} by {anecdote.author}</h2>
   <p>has {anecdote.votes} votes</p>
-  <p>for more info, see <a href={anecdote.info} target='_blank'>{anecdote.info}</a> votes</p>
+  <p>for more info, see <a href={anecdote.info} target='_blank'>{anecdote.info}</a></p>
   <button onClick={() => vote(anecdote.id)}>vote</button>
 </>
 
@@ -54,10 +54,8 @@ const AnecdoteList = ({ anecdotes }) => (
 )
 
 const CreateNew = (props) => {
-  const [content, setContent] = useState('')
-  const [author, setAuthor] = useState('')
-  const [info, setInfo] = useState('')
-
+  const { formData, handleInputChange, resetForm } = useForm({ content: '', author: '', info: '' })
+  const { content, author, info } = formData
   const history = useHistory()
 
   const handleSubmit = (e) => {
@@ -85,23 +83,37 @@ const CreateNew = (props) => {
       <form onSubmit={handleSubmit}>
         <div>
           content
-          <input name='content' value={content} onChange={(e) => setContent(e.target.value)} />
+          <input name='content' value={content} onChange={handleInputChange} />
         </div>
         <div>
           author
-          <input name='author' value={author} onChange={(e) => setAuthor(e.target.value)} />
+          <input name='author' value={author} onChange={handleInputChange} />
         </div>
         <div>
           url for more info
-          <input name='info' value={info} onChange={(e) => setInfo(e.target.value)} />
+          <input name='info' value={info} onChange={handleInputChange} />
         </div>
-        <button>create</button>
+        <button type='submit'>create</button>
+        <button type='button' onClick={resetForm}>reset</button>
       </form>
     </div>
   )
 
 }
 
+const useForm = (initialState = {}) => {
+  const [formData, setFormData] = React.useState(initialState);
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value })
+  }
+
+  const resetForm = (e) => {
+    setFormData(initialState)
+  }
+
+  return { formData, handleInputChange, resetForm };
+}
 
 const App = props => {
 
@@ -146,7 +158,7 @@ const App = props => {
         <Menu />
         <Switch>
           <Route path="/anecdotes/:id">
-            {anecdote ?<Anecdote anecdote={anecdote} vote={vote} />: <p>NOT FOUND!</p>}
+            {anecdote ? <Anecdote anecdote={anecdote} vote={vote} /> : <p>NOT FOUND!</p>}
           </Route>
           <Route path="/create">
             <CreateNew addNew={addNew} announce={setAnnouncement} />
