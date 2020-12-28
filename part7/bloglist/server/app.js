@@ -3,6 +3,7 @@ const express = require('express')
 require('express-async-errors')
 const app = express()
 const cors = require('cors')
+const path = require('path')
 
 const loginRouter = require('./controllers/login')
 const usersRouter = require('./controllers/users')
@@ -36,7 +37,10 @@ if (process.env.NODE_ENV === 'test') {
   const testingRouter = require('./controllers/testing')
   app.use('/api/testing', testingRouter)
 }
-app.use(middleware.unknownEndpoint)
+app.get('/*', function (request, response) {
+  response.sendFile(path.join(__dirname, 'build/index.html'))
+})
+
 app.use(middleware.errorHandler)
 
 module.exports = app
