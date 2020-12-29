@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { useMutation } from '@apollo/client'
 
-import { ALL_BOOKS, CREATE_BOOK, RECOMMENDED_BOOKS } from '../queries'
+import { CREATE_BOOK, RECOMMENDED_BOOKS } from '../queries'
 
-const NewBook = ({ show, Notify }) => {
+const NewBook = ({ Notify, updateCacheWith }) => {
   const [title, setTitle] = useState('')
   const [author, setAuhtor] = useState('')
   const [published, setPublished] = useState('')
@@ -16,16 +16,8 @@ const NewBook = ({ show, Notify }) => {
     },
 
     update: (store, response) => {
-      const allBooksQuery = store.readQuery({ query: ALL_BOOKS })
+      updateCacheWith(response.data.addBook)
       const recommendedBooksQuery = store.readQuery({ query: RECOMMENDED_BOOKS })
-      store.writeQuery({
-        query: ALL_BOOKS,
-        data: {
-          ...allBooksQuery,
-          allBooks: [...allBooksQuery.allBooks, response.data.addBook]
-        }
-      })
-
       const genreMatch = genres.filter(g => recommendedBooksQuery.recommendedBooks[0].genres.includes(g))
       
       if (genreMatch.length > 0) {
@@ -40,9 +32,6 @@ const NewBook = ({ show, Notify }) => {
       }
     }
   })
-  if (!show) {
-    return null
-  }
 
   const submit = async (event) => {
     event.preventDefault()

@@ -4,12 +4,9 @@ import { useQuery } from '@apollo/client'
 import { ALL_AUTHORS } from '../queries'
 import EditAuthor from './EditAuthor'
 
-const Authors = ({show, Notify}) => {
+const Authors = ({ Notify }) => {
   const result = useQuery(ALL_AUTHORS)
-  if (!show) {
-    return null
-  }
-  if (result.loading)  {
+  if (result.loading) {
     return <div>loading...</div>
   }
 

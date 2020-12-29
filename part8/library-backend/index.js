@@ -37,6 +37,7 @@ const typeDefs = gql`
   type Author {
     name: String!
     born: Int
+    books: [Book!]!
     bookCount: Int!
     id: ID!
   }
@@ -77,8 +78,14 @@ const typeDefs = gql`
       username: String!
       password: String!
     ): Token 
-  }  
+  }
+  type Subscription {
+    bookAdded: Book!
+  }
 `
+
+const { PubSub } = require('apollo-server')
+const pubsub = new PubSub()
 
 const resolvers = {
   Query: {
@@ -96,7 +103,7 @@ const resolvers = {
     },
     recommendedBooks: async (root, args, context) => {
       const currentUser = context.currentUser
-      const genre = currentUser.favoriteGenre
+      const genre = currentUser && currentUser.favoriteGenre
 
       let result = await Book.find({}).populate('author')
       if (genre) {
@@ -106,13 +113,12 @@ const resolvers = {
       }
       return result
     },
-    allAuthors: async () => await Author.find({}),
+    allAuthors: async () => await Author.find({}).populate('books'),
     me: (root, args, context) => context.currentUser
   },
   Author: {
     bookCount: async (root) => {
-      const books = await Book.find({ author: root.id })
-      return books.length
+      return root.books.length
     }
   },
 
@@ -139,6 +145,11 @@ const resolvers = {
           invalidArgs: args,
         })
       }
+
+      author.books = author.books.concat(book._id)
+      await author.save()
+
+      pubsub.publish('BOOK_ADDED', { bookAdded: { ...book.toJSON(), author: author } })
 
       return { ...book.toJSON(), author: author }
     },
@@ -208,7 +219,12 @@ const resolvers = {
 
       return { value: jwt.sign(userForToken, JWT_SECRET) }
     },
-  }
+  },
+  Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterator(['BOOK_ADDED'])
+    },
+  },
 }
 
 const server = new ApolloServer({
@@ -229,6 +245,7 @@ const server = new ApolloServer({
   }
 })
 
-server.listen().then(({ url }) => {
+server.listen().then(({ url, subscriptionsUrl }) => {
   console.log(`Server ready at ${url}`)
+  console.log(`Subscriptions ready at ${subscriptionsUrl}`)
 })

@@ -3,12 +3,8 @@ import { useQuery } from '@apollo/client'
 
 import { RECOMMENDED_BOOKS } from '../queries'
 
-const Recommended = ({ show }) => {
+const Recommended = () => {
   const result = useQuery(RECOMMENDED_BOOKS)
-
-  if (!show) {
-    return null
-  }
 
   if (result.loading) {
     return <div>loading...</div>
