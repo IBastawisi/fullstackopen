@@ -1,11 +1,10 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useQuery } from '@apollo/client'
 
-import { ALL_BOOKS } from '../queries'
+import { RECOMMENDED_BOOKS } from '../queries'
 
-const Books = ({ show }) => {
-  const result = useQuery(ALL_BOOKS)
-  const [genre, setGenre] = useState(null)
+const Recommended = ({ show }) => {
+  const result = useQuery(RECOMMENDED_BOOKS)
 
   if (!show) {
     return null
@@ -15,8 +14,6 @@ const Books = ({ show }) => {
     return <div>loading...</div>
   }
 
-  const genres = result.data && [...new Set(result.data.allBooks.flatMap(b => b.genres))]
-  const books = genre ? result.data.allBooks.filter(b => b.genres.includes(genre)) : result.data.allBooks
   return (
     <div>
       <h2>books</h2>
@@ -32,7 +29,7 @@ const Books = ({ show }) => {
               published
             </th>
           </tr>
-          {books.map(a =>
+          {result.data.recommendedBooks.map(a =>
             <tr key={a.title}>
               <td>{a.title}</td>
               <td>{a.author.name}</td>
@@ -41,11 +38,8 @@ const Books = ({ show }) => {
           )}
         </tbody>
       </table>
-      <div>
-        <button onClick={() => setGenre(null)} >All</button>
-        {genres.map(g => <button key={g} onClick={() => setGenre(g)}>{g}</button>)}</div>
     </div>
   )
 }
 
-export default Books
+export default Recommended

@@ -51,6 +51,7 @@ const typeDefs = gql`
     bookCount: Int!
     authorCount: Int!
     allBooks(author: String, genre: String): [Book!]!
+    recommendedBooks: [Book!]!
     allAuthors: [Author!]!
     me: User
   }
@@ -81,8 +82,8 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
-    bookCount: () => books.length,
-    authorCount: () => authors.length,
+    bookCount: () => Book.collection.countDocuments(),
+    authorCount: () => Author.collection.countDocuments(),
     allBooks: async (root, args) => {
       let result = await Book.find({}).populate('author')
       if (args.author) {
@@ -93,12 +94,25 @@ const resolvers = {
       }
       return result
     },
-    allAuthors: () => authors,
+    recommendedBooks: async (root, args, context) => {
+      const currentUser = context.currentUser
+      const genre = currentUser.favoriteGenre
+
+      let result = await Book.find({}).populate('author')
+      if (genre) {
+        result = result.filter(b => b.genres.includes(genre))
+      }else {
+        result = [result[Math.floor(Math.random() * result.length)]]
+      }
+      return result
+    },
+    allAuthors: async () => await Author.find({}),
     me: (root, args, context) => context.currentUser
   },
   Author: {
-    bookCount: (root) => {
-      return books.filter(b => b.author === root.name).length
+    bookCount: async (root) => {
+      const books = await Book.find({ author: root.id })
+      return books.length
     }
   },
 
@@ -126,7 +140,7 @@ const resolvers = {
         })
       }
 
-      return { ...book, author: author }
+      return { ...book.toJSON(), author: author }
     },
     addAuthor: async (root, args, context) => {
       const currentUser = context.currentUser
