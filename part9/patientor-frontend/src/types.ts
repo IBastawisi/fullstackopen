@@ -4,21 +4,20 @@ export interface Diagnosis {
   latin?: string;
 }
 
+export enum Gender {
+  Male = "male",
+  Female = "female",
+  Other = "other"
+}
+
 export interface Patient {
   id: string;
   name: string;
-  dateOfBirth: string,
-  ssn: string,
-  gender: Gender,
-  occupation: string,
-  entries: Entry[]
-}
-
-export type NewPatientEntry = Omit<Patient, 'id'>;
-
-export enum Gender {
-  Male = 'male',
-  Female = 'female'
+  occupation: string;
+  gender: Gender;
+  ssn?: string;
+  dateOfBirth?: string;
+  entries: Entry[];
 }
 
 interface BaseEntry {
@@ -39,17 +38,18 @@ export enum HealthCheckRating {
 interface HospitalEntry extends BaseEntry {
   type: "Hospital";
   discharge: {
-    date: string,
-    criteria: string,
-  }}
+    date: string;
+    criteria: string;
+  };
+}
 
 interface OccupationalHealthcareEntry extends BaseEntry {
   type: "OccupationalHealthcare";
   employerName: string;
   sickLeave?: {
-    startDate: string,
-    endDate: string,
-  }
+    startDate: string;
+    endDate: string;
+  };
 }
 
 interface HealthCheckEntry extends BaseEntry {
