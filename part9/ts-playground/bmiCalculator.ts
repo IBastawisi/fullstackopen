@@ -17,11 +17,11 @@ export module BMI {
     }
   }
 
-  const calculate = (a: number, b: number) => {
+  export const calculate = (a: number, b: number) => {
     return a / b / b * 10000;
   }
 
-  const bmiToString = (bmi: number): string => {
+  export const bmiToString = (bmi: number): string => {
     if (bmi <= 18.5) {
       return 'you are underweight';
     } else if (bmi <= 25) {
@@ -33,12 +33,15 @@ export module BMI {
     } else return 'could not parse your input, try again'
 
   }
-  try {
-    const { value1, value2 } = parseArguments(process.argv);
-    const bmi = calculate(value1, value2)
-    console.log(`your BMI is ${bmi.toFixed(2)}`);
-    console.log(bmiToString(bmi));
-  } catch (e) {
-    console.log('Error: ', e.message);
+  if (process.argv.length > 2) {
+    try {
+      const { value1, value2 } = parseArguments(process.argv);
+      const bmi = calculate(value1, value2)
+      console.log(`your BMI is ${bmi.toFixed(2)}`);
+      console.log(bmiToString(bmi));
+    } catch (e) {
+      console.log('Error: ', e.message);
+    }
+    
   }
 }
