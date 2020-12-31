@@ -28,6 +28,12 @@ interface BaseEntry {
   diagnosisCodes?: Array<Diagnosis['code']>;
 }
 
+export enum EntryType {
+  OccupationalHealthcare = 'OccupationalHealthcare',
+  Hospital = 'Hospital',
+  HealthCheck = 'HealthCheck'
+}
+
 export enum HealthCheckRating {
   "Healthy" = 0,
   "LowRisk" = 1,
@@ -61,3 +67,21 @@ export type Entry =
   | HospitalEntry
   | OccupationalHealthcareEntry
   | HealthCheckEntry;
+
+export type NewEntry = {
+  type: EntryType;
+  description: string;
+  date: string;
+  specialist: string;
+  diagnosisCodes?: Array<Diagnosis['code']>;
+  discharge?: {
+    date: string;
+    criteria: string;
+  };
+  employerName?: string;
+  sickLeave?: {
+    startDate: string;
+    endDate: string;
+  };
+  healthCheckRating?: HealthCheckRating;
+};
